@@ -1,0 +1,18 @@
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- script: echo Hello, world!
+  displayName: 'Run a one-line script'
+
+- task: AzurePowerShell@5
+  inputs:
+    azureSubscription: 'MymanuallycreatedSP'
+    ScriptType: 'FilePath'
+    ScriptPath: 'MyScript.ps1'
+    errorActionPreference: 'silentlyContinue'
+    azurePowerShellVersion: 'LatestVersion'
+

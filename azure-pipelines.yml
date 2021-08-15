@@ -1,0 +1,92 @@
+# Starter pipeline
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+- group: GroupVar-1
+- group: GroupVar-2
+- group: GroupVar-3
+- group: CommonVariables
+
+
+stages:
+- stage: ShowGeneralInfo
+  displayName: show the ENV VARS
+  jobs:
+   - job: DisplayEnvVars
+     displayName: Use the powershell command to display the ENV vars
+     steps:
+       - powershell: Write-Host "We use the branch $env:SOURCE_BRANCH . The name of the build pipeline is $env:BUILD_DEFINITION_NAME. The repository NAME is $env:BUILD_REPO_NAME and the Requested mail is $env:MAIL_REQUESTED"
+         env:
+           BUILD_DEFINITION_NAME: $(Build.DefinitionName)
+           BUILD_REPO_NAME: $(Build.Repository.Name)
+           MAIL_REQUESTED: $(Build.RequestedForEmail)
+           SOURCE_BRANCH: $(Build.SourceBranch)
+
+- stage: DeployToRGNo1
+  displayName: Deploy in the First Resource Group (test-rg1)
+  jobs:
+    - job: Deployto1stRG
+      displayName: Deploy the Keyvault in the test-rg1
+      #continueOnError: true
+      steps: 
+      - task: AzureResourceManagerTemplateDeployment@3
+        inputs:
+          deploymentScope: 'Resource Group'
+          azureResourceManagerConnection: 'MymanuallycreatedSP'
+          subscriptionId: $(var_subscriptionId)
+          action: 'Create Or Update Resource Group'
+          resourceGroupName: $(RG-name-1_var)
+          location: $(var_location)
+          templateLocation: 'Linked artifact'
+          csmFile: 'KeyVault.json'
+          csmParametersFile: 'KeyVault.parameters.json'
+          deploymentMode: 'validation'
+          overrideParameters: '-keyvaultname $(KeyVaultName-1_var)'
+
+- stage: DeployToRGNo2 
+  displayName: Deploy in the Second Resource Group (test-rg2)
+  jobs:
+    - job: Deployto2stRG
+      displayName: Deploy the Keyvault in the test-rg2 Resource Group
+      steps: 
+      - task: AzureResourceManagerTemplateDeployment@3
+        inputs:
+          deploymentScope: 'Resource Group'
+          azureResourceManagerConnection: 'MymanuallycreatedSP'
+          # subscriptionId: $(var_subscriptionId)
+          action: 'Create Or Update Resource Group'
+          resourceGroupName: $(RG-name-2_var)
+          location: $var_location
+          templateLocation: 'Linked artifact'
+          csmFile: 'KeyVault.json'
+          csmParametersFile: 'KeyVault.parameters.json'
+          deploymentMode: 'validation'
+          overrideParameters: '-keyvaultname $(KeyVaultName-2_var)'
+
+- stage: DeployToRGNo3
+  displayName: Deploy in the Third Resource Group (test-rg3)
+  jobs:
+    - job: Deployto3dRG
+      displayName: Deploy the Keyvault in the test-rg3 Resource Group
+      steps: 
+      - task: AzureResourceManagerTemplateDeployment@3
+        inputs:
+          deploymentScope: 'Resource Group'
+          azureResourceManagerConnection: 'MymanuallycreatedSP'
+          # subscriptionId: $(var_subscriptionId)
+          action: 'Create Or Update Resource Group'
+          resourceGroupName: $(RG-name-3_var)
+          location: $var_location
+          templateLocation: 'Linked artifact'
+          csmFile: 'KeyVault.json'
+          csmParametersFile: 'KeyVault.parameters.json'
+          deploymentMode: 'validation'
+          overrideParameters: '-keyvaultname $(KeyVaultName-3_var)'
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
